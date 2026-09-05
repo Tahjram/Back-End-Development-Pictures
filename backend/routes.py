@@ -35,7 +35,10 @@ def count():
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    if data:
+        return jsonify(data),200
+    
+    return {"message": "Internal server error"}, 500
 
 ######################################################################
 # GET A PICTURE
@@ -44,7 +47,14 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    if id is None:
+        return {"message": "Missing query parameter"}, 400
+
+    for picture in data:
+        if picture["id"] == id:
+            return picture, 200
+    
+    return {"message": "Picture not found"}, 404
 
 
 ######################################################################
@@ -52,7 +62,16 @@ def get_picture_by_id(id):
 ######################################################################
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    new_picture = request.json
+    if not new_picture:
+        return {"Message": "Invalid Input"}, 422
+    for picture in data:
+        if picture["id"] == new_picture["id"]:
+            return {"Message": f"picture with id {picture['id']} already present"}, 302
+    
+    data.append(new_picture)
+    return new_picture, 201
+
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +80,29 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    update = request.json
+
+    if not update:
+        return {"Message": "Invalid Input"}, 422
+    for index, picture in enumerate(data):
+        if id == picture["id"]:
+            data[index] = update
+            return update, 201
+
+    return {"message": "picture not found"}, 404
+
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    if id is None:
+        return {"message": "Missing query parameter"}, 400
+
+    for picture in data:
+        if picture["id"] == id:
+            data.remove(picture)
+            return {"message": f"Picture {id} deleted"}, 204
+    
+    return {"message": "Picture not found"}, 404
